@@ -629,6 +629,8 @@ event_base_new_with_config(const struct event_config *cfg)
 	evmap_signal_initmap_(&base->sigmap);
 	event_changelist_init_(&base->changelist);
 
+	base->running_prio = -1;
+
 	base->evbase = NULL;
 
 	should_check_environment =
@@ -1511,6 +1513,10 @@ event_process_active_single_queue(struct event_base *base,
 
 		if (base->event_break)
 			return -1;
+		if (base->event_rescan) {
+			base->event_rescan = 0;
+			return count + 1;
+		}
 		if (count >= max_to_process)
 			return count;
 		if (count && endtime) {
@@ -1591,6 +1597,7 @@ event_process_active(struct event_base *base)
 	}
 
 	for (i = 0; i < base->nactivequeues; ++i) {
+		base->running_prio = i;
 		if (TAILQ_FIRST(&base->activequeues[i]) != NULL) {
 			activeq = &base->activequeues[i];
 			if (i < limit_after_prio)
@@ -1599,8 +1606,10 @@ event_process_active(struct event_base *base)
 			else
 				c = event_process_active_single_queue(base, activeq,
 				    maxcb, endtime);
-			if (c < 0)
+			if (c < 0) {
+				base->running_prio = -1;
 				return -1;
+			}
 			else if (c > 0)
 				break; /* Processed a real event; do not
 					* consider lower-priority events */
@@ -1609,8 +1618,10 @@ event_process_active(struct event_base *base)
 		}
 	}
 
+	base->running_prio++;
 	event_process_deferred_callbacks(&base->defer_queue,&base->event_break,
 	    maxcb-c, endtime);
+	base->running_prio = -1;
 	return c;
 }
 
@@ -2573,6 +2584,10 @@ event_callback_activate_nolock_(struct event_base *base,
 		event_queue_remove_active_later(base, evcb);
 
 	event_queue_insert_active(base, evcb);
+
+	if (evcb->evcb_pri < base->running_prio) {
+		base->event_rescan = 1;
+	}
 
 	if (EVBASE_NEED_NOTIFY(base))
 		evthread_notify_base(base);

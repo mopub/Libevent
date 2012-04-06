@@ -1387,6 +1387,57 @@ end:
 	;
 }
 
+static int hipri_active = 0;
+static int lopri_active = 0;
+static void
+hipri_cb(evutil_socket_t fd, short what, void *arg)
+{
+	++hipri_active;
+	event_base_loopbreak(arg);
+}
+static void
+lopri_cb(evutil_socket_t fd, short what, void *arg)
+{
+	++lopri_active;
+	event_active(arg, EV_READ, 1);
+}
+static void
+test_escalate_priority(void *ptr)
+{
+	struct basic_test_data *data = ptr;
+
+	struct event *hi, *lo1, *lo2, *lo3, *lo4;
+
+	event_base_priority_init(data->base, 2);
+
+	hi = event_new(data->base, -1, 0, hipri_cb, data->base);
+	lo1 = event_new(data->base, -1, 0, lopri_cb, hi);
+	lo2 = event_new(data->base, -1, 0, lopri_cb, hi);
+	lo3 = event_new(data->base, -1, 0, lopri_cb, hi);
+	lo4 = event_new(data->base, -1, 0, lopri_cb, hi);
+	event_priority_set(hi, 0);
+	event_priority_set(lo1, 1);
+	event_priority_set(lo2, 1);
+	event_priority_set(lo3, 1);
+	event_priority_set(lo4, 1);
+	event_active(lo1, EV_READ, 1);
+	event_active(lo2, EV_READ, 1);
+	event_active(lo3, EV_READ, 1);
+	event_active(lo4, EV_READ, 1);
+	/* Now all 4 low-priority events are active.  The first one to run
+	 * should activate the high-priority event.  Does this indeed stop the
+	 * other 3 low-priority events from running? */
+
+	event_base_loop(data->base, 0);
+
+	tt_int_op(hipri_active, ==, 1);
+	/* This insists that it does. */
+	tt_int_op(lopri_active, ==, 1);
+end:
+	;
+}
+
+
 static void
 test_event_base_new(void *ptr)
 {
@@ -2455,6 +2506,7 @@ struct testcase_t main_testcases[] = {
 	BASIC(bad_reentrant, TT_FORK|TT_NEED_BASE|TT_NO_LOGS),
 
 	BASIC(active_later, TT_FORK|TT_NEED_BASE|TT_NEED_SOCKETPAIR),
+	BASIC(escalate_priority, TT_FORK|TT_NEED_BASE),
 
 	/* These are still using the old API */
 	LEGACY(persistent_timeout, TT_FORK|TT_NEED_BASE),

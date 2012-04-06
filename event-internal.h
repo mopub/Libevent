@@ -207,10 +207,16 @@ struct event_base {
 	int event_gotterm;
 	/** Set if we should terminate the loop immediately */
 	int event_break;
+	/** Set if we should exit the current iteration of the loop and
+	 * start another */
+	int event_rescan;
 
 	/** Set if we're running the event_base_loop function, to prevent
 	 * reentrant invocation. */
 	int running_loop;
+	/** Set to -1 if we're not running the events for any priority; set to
+	 * the priority we're scanning otherwise. */
+	int running_prio;
 
 	/* Active event management. */
 	/** An array of nactivequeues queues for active event_callbacks (ones
