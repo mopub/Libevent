@@ -628,6 +628,9 @@ event_base_new_with_config(const struct event_config *cfg)
 	    base->max_dispatch_time.tv_sec == -1)
 		base->limit_callbacks_after_prio = INT_MAX;
 
+	base->max_dispatch_callbacks_configured = base->max_dispatch_callbacks;
+	base->limit_callbacks_after_prio_configured = base->limit_callbacks_after_prio;
+
 	for (i = 0; eventops[i] && !base->evbase; i++) {
 		if (cfg != NULL) {
 			/* determine if this backend should be avoided */
@@ -1113,6 +1116,11 @@ event_base_priority_init(struct event_base *base, int npriorities)
 	    || npriorities >= EVENT_MAX_PRIORITIES)
 		goto err;
 
+	if (npriorities < EVENT_MAX_PRIORITIES) {
+		/* Reserve the lowest priority for 'deferred's */
+		++npriorities;
+	}
+
 	if (npriorities == base->nactivequeues)
 		goto ok;
 
@@ -1134,6 +1142,11 @@ event_base_priority_init(struct event_base *base, int npriorities)
 		TAILQ_INIT(&base->activequeues[i]);
 	}
 
+	if (base->max_dispatch_callbacks_configured == INT_MAX)
+		base->max_dispatch_callbacks = 16;
+	if (base->limit_callbacks_after_prio_configured == INT_MAX)
+		base->limit_callbacks_after_prio = npriorities - 1;
+
 ok:
 	r = 0;
 err:
@@ -1149,7 +1162,7 @@ event_base_get_npriorities(struct event_base *base)
 	EVBASE_ACQUIRE_LOCK(base, th_base_lock);
 	n = base->nactivequeues;
 	EVBASE_RELEASE_LOCK(base, th_base_lock);
-	return (n);
+	return n - 1;
 }
 
 /* Returns true iff we're currently watching any events. */
@@ -1883,7 +1896,7 @@ event_assign(struct event *ev, struct event_base *base, evutil_socket_t fd, shor
 
 	if (base != NULL) {
 		/* by default, we put new events into the middle priority */
-		ev->ev_pri = base->nactivequeues / 2;
+		ev->ev_pri = (base->nactivequeues-1) / 2;
 	}
 
 	event_debug_note_setup_(ev);

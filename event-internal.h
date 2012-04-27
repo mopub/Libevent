@@ -291,6 +291,8 @@ struct event_base {
 	struct timeval max_dispatch_time;
 	int max_dispatch_callbacks;
 	int limit_callbacks_after_prio;
+	int max_dispatch_callbacks_configured;
+	int limit_callbacks_after_prio_configured;
 
 	/* Notify main thread to wake up break, etc. */
 	/** True if the base already has a pending notify, and we don't need
