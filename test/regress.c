@@ -2528,15 +2528,9 @@ struct testcase_t main_testcases[] = {
 
 	BASIC(bad_assign, TT_FORK|TT_NEED_BASE|TT_NO_LOGS),
 	BASIC(bad_reentrant, TT_FORK|TT_NEED_BASE|TT_NO_LOGS),
-
-<<<<<<< HEAD
-||||||| parent of dc068d8... Add "active later" event_callbacks to supersede deferred
-	/* These are still using the old API */
-=======
 	BASIC(active_later, TT_FORK|TT_NEED_BASE|TT_NEED_SOCKETPAIR),
 
 	/* These are still using the old API */
->>>>>>> dc068d8... Add "active later" event_callbacks to supersede deferred
 	LEGACY(persistent_timeout, TT_FORK|TT_NEED_BASE),
 	{ "persistent_timeout_jump", test_persistent_timeout_jump, TT_FORK|TT_NEED_BASE, &basic_setup, NULL },
 	{ "persistent_active_timeout", test_persistent_active_timeout,
