@@ -2526,7 +2526,7 @@ event_callback_activate_nolock_(struct event_base *base,
 	if (EVBASE_NEED_NOTIFY(base))
 		evthread_notify_base(base);
 
-	return 1;
+	return r;
 }
 
 void
