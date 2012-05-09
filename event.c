@@ -2077,7 +2077,7 @@ event_get_callback_arg(const struct event *ev)
 }
 
 int
-event_get_priority(const struct event *ev);
+event_get_priority(const struct event *ev)
 {
 	event_debug_assert_is_setup_(ev);
 	return ev->ev_pri;
