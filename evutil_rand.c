@@ -59,14 +59,20 @@ static void
 ev_arc4random_buf(void *buf, size_t n)
 {
 	unsigned char *b = buf;
-#ifdef _EVENT_HAVE_ARC4RANDOM_BUF
-#ifdef __APPLE__
+#if defined(_EVENT_HAVE_ARC4RANDOM_BUF) && !defined(__APPLE__)
+	return arc4random_buf(buf, n);
+#else
+
+#if defined(_EVENT_HAVE_ARC4RANDOM_BUF)
+	/* OSX 10.7 introducd arc4random_buf, so if you build your program
+	 * there, you'll get surprised when older versions of OSX fail to run.
+	 * To solve this, we can check whether the function pointer is set,
+	 * and fall back otherwise.  (OSX does this using some linker
+	 * trickery.)
+	 */
 	if (arc4random_buf) {
 		return arc4random_buf(buf, n);
 	}
-#else /* !__APPLE__ */
-	return arc4random_buf(buf, n);
-#endif
 #endif
 	/* Make sure that we start out with b at a 4-byte alignment; plenty
 	 * of CPUs care about this for 32-bit access. */
@@ -86,6 +92,7 @@ ev_arc4random_buf(void *buf, size_t n)
 		ev_uint32_t u = arc4random();
 		memcpy(b, &u, n);
 	}
+#endif
 }
 
 #else /* !_EVENT_HAVE_ARC4RANDOM { */
