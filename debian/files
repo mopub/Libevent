@@ -1,0 +1,7 @@
+libevent-dev_2.1.2-alpha_amd64.deb libdevel optional
+libevent-dbg_2.1.2-alpha_amd64.deb debug extra
+libevent-2.1-2_2.1.2-alpha_amd64.deb libs standard
+libevent-core-2.1-2_2.1.2-alpha_amd64.deb libs optional
+libevent-extra-2.1-2_2.1.2-alpha_amd64.deb libs optional
+libevent-pthreads-2.1-2_2.1.2-alpha_amd64.deb libs optional
+libevent-openssl-2.1-2_2.1.2-alpha_amd64.deb libs optional

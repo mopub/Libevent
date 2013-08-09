@@ -1,0 +1,17 @@
+Package: libevent-dbg
+Source: libevent
+Version: 2.1.2-alpha
+Architecture: amd64
+Maintainer: Anibal Monsalve Salazar <anibal@debian.org>
+Installed-Size: 736
+Depends: libevent-2.1-2 (= 2.1.2-alpha), libevent-core-2.1-2 (= 2.1.2-alpha), libevent-extra-2.1-2 (= 2.1.2-alpha), libevent-pthreads-2.1-2 (= 2.1.2-alpha), libevent-openssl-2.1-2 (= 2.1.2-alpha)
+Section: debug
+Priority: extra
+Multi-Arch: same
+Homepage: http://libevent.org/
+Description: Asynchronous event notification library (debug symbols)
+ Libevent is an asynchronous event notification library that provides a
+ mechanism to execute a callback function when a specific event occurs
+ on a file descriptor or after a timeout has been reached.
+ .
+ This package includes debugging information for libevent.
